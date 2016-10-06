@@ -22,7 +22,7 @@ public class LeafNode<K extends Comparable<K>, T> extends Node<K, T> {
 		values = new ArrayList<T>(newValues);
 
 	}
-
+	
 	/**
 	 * insert key/value into this node so that it still remains sorted
 	 * 

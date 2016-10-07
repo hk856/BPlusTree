@@ -6,6 +6,7 @@ public class IndexNode<K extends Comparable<K>, T> extends Node<K,T> {
 
 	// m nodes
 	protected ArrayList<Node<K,T>> children; // m+1 children
+	protected IndexNode<K, T> parentNode;
 
 	public IndexNode(K key, Node<K,T> child0, Node<K,T> child1) {
 		isLeafNode = false;
@@ -14,6 +15,8 @@ public class IndexNode<K extends Comparable<K>, T> extends Node<K,T> {
 		children = new ArrayList<Node<K,T>>();
 		children.add(child0);
 		children.add(child1);
+		child0.parentNode = this;
+		child1.parentNode = this;
 	}
 
 	public IndexNode(List<K> newKeys, List<Node<K,T>> newChildren) {
@@ -41,6 +44,7 @@ public class IndexNode<K extends Comparable<K>, T> extends Node<K,T> {
 			keys.add(index, key);
 			children.add(index+1, child);
 		}
+		child.parentNode = this;
 	}
 
 }

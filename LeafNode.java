@@ -4,9 +4,10 @@ import java.util.ListIterator;
 
 public class LeafNode<K extends Comparable<K>, T> extends Node<K, T> {
 	protected ArrayList<T> values;
-  protected LeafNode<K,T> nextLeaf;
-  protected LeafNode<K,T> previousLeaf;
-
+	protected LeafNode<K, T> nextLeaf;
+	protected LeafNode<K, T> previousLeaf;
+	protected IndexNode<K, T> parentNode;
+	
 	public LeafNode(K firstKey, T firstValue) {
 		isLeafNode = true;
 		keys = new ArrayList<K>();
@@ -22,7 +23,7 @@ public class LeafNode<K extends Comparable<K>, T> extends Node<K, T> {
 		values = new ArrayList<T>(newValues);
 
 	}
-	
+
 	/**
 	 * insert key/value into this node so that it still remains sorted
 	 * 

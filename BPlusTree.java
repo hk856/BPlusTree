@@ -60,8 +60,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 			root = new LeafNode(key, value);
 		} else if (root.isLeafNode) {
 			LeafNode target = (LeafNode) root;
-			target.keys.add(key);
-			target.values.add(value);
+			target.insertSorted(key, value);
 			if (target.isOverflowed()) {//root leaf node overflowed
 				Entry<K, Node<K, T>> splitedNode = splitLeafNode(target);//TODO: might need more input
 				return splitedNode;
@@ -76,16 +75,46 @@ public class BPlusTree<K extends Comparable<K>, T> {
 					Node<K,T> nextTarget = children.get(i);
 					tree.root = nextTarget;
 					Entry<K, Node<K, T>> splitedPoint = tree.insert(key, value);
-					if(splitedPoint != null){
+					if(splitedPoint != null){ //back to the target level
 						//the "nextTarget" will have a shorter children list
 						//the Key in the splitedPoint is a new index node after the "nextTarget" node
-						//add the splitedPoint to children. if children overflow, split this index node
-						if(nextTarget.isOverflowed()){
-							
+						//add the splitedPoint to target children. if children overflow, split this index node		
+						
+						target.insertSorted(splitedPoint, i);
+						if(target.isOverflowed()){//if adding the right splited node will make target overflow
+							Entry<K, Node<K, T>> splitedNode = splitIndexNode(target);//TODO: might need more input
+							return splitedNode;
+						}else{
+							return null;
 						}
+						
+					}else{
+						return null;
 					}
 				}
-				break;
+			}
+			if (target.keys.get(target.keys.size()-1).compareTo(key)<0){
+				//last child is the (grand)parent
+				BPlusTree<K, T> tree = new BPlusTree<K, T>();
+				Node<K,T> nextTarget = children.get(target.keys.size());
+				tree.root = nextTarget;
+				Entry<K, Node<K, T>> splitedPoint = tree.insert(key, value);
+				if(splitedPoint != null){ //back to the target level
+					//the "nextTarget" will have a shorter children list
+					//the Key in the splitedPoint is a new index node after the "nextTarget" node
+					//add the splitedPoint to target children. if children overflow, split this index node		
+					
+					target.insertSorted(splitedPoint, target.keys.size());
+					if(target.isOverflowed()){//if adding the right splited node will make target overflow
+						Entry<K, Node<K, T>> splitedNode = splitIndexNode(target);//TODO: might need more input
+						return splitedNode;
+					}else{
+						return null;
+					}
+					
+				}else{
+					return null;
+				}
 			}
 		}
 		return null;

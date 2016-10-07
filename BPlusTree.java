@@ -333,8 +333,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 	                left.keys.remove(D);
 	                left.values.remove(D);
 	            }
-
-				
+	            
 			}
 			int key = parent.children.indexOf(right) - 1;
 			parent.keys.remove(key);
@@ -360,15 +359,59 @@ public class BPlusTree<K extends Comparable<K>, T> {
 		
 		//merge case
 		if(leftIndex.keys.size() + rightIndex.keys.size() < 2*D){
-			for(int i =0; i < leftIndex.keys.size(); i++) {
+			// add each child from leftIndex to rightIndex
+			// set child parent to rightIndex
+			for(int i = leftIndex.children.size() -1; i >=0; i--){
+				rightIndex.children.add(0, leftIndex.children.get(i));
+				leftIndex.children.get(i).parentNode = rightIndex;
+			}
+			
+			int key = parent.children.indexOf(leftIndex);
+	        K splitKey = parent.keys.get(key);
+	        rightIndex.keys.add(0, splitKey);
+	        
+	        // add keys from left to the right
+			for(int i =leftIndex.keys.size()-1; i >= 0; i--) {
+				rightIndex.keys.add(0, leftIndex.keys.get(i));	
+			}
+			return key;
+		
+		}
+		else{
+			if(leftIndex.keys.size() > rightIndex.keys.size()){
+				//move left children to the right until D keys in the left
+				for(int i = D + 1; i <= leftIndex.children.size(); i++){
+					rightIndex.children.add(0, leftIndex.children.get(leftIndex.children.size()-1));
+					leftIndex.children.get(leftIndex.children.size()-1).parentNode = rightIndex;
+					
+					leftIndex.children.remove(leftIndex.children.size()-1);
+				}
+				
+				int key = parent.children.indexOf(leftIndex);
+		        K splitKey = parent.keys.get(key);
+		        rightIndex.keys.add(0, splitKey);
+		        parent.keys.remove(key);
+	            parent.keys.add(key, splitKey);
+	            
+	            // move keys to right node
+	            for (int i = leftIndex.keys.size() - 1; i >= D+1; i--){
+	                K newkey = leftIndex.keys.get(i);
+	                rightIndex.keys.add(0, newkey);
+	            }
+	            // remove keys in left node
+	            for (int i = leftIndex.keys.size() - 1; i>=D; i--){
+	                leftIndex.keys.remove(D);
+	            }
+
 				
 				
 			}
 			
+			return -1;
 		}
 		
 		
-		return -1;
+		
 	}
 
 }

@@ -65,11 +65,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 			LeafNode<K, T> target = (LeafNode<K,T>) root;
 			target.insertSorted(key, value);
 			if (target.isOverflowed()) {// root leaf node overflowed
-				Entry<K, Node<K, T>> splitedNode = splitLeafNode(target);// TODO:
-																			// might
-																			// need
-																			// more
-																			// input
+				Entry<K, Node<K, T>> splitedNode = splitLeafNode(target);
 				if (this.isRealTree) {
 					K newkey = splitedNode.getKey();
 					LeafNode<K, T> rightNode = (LeafNode<K, T>) splitedNode.getValue();// here
@@ -198,9 +194,9 @@ public class BPlusTree<K extends Comparable<K>, T> {
 		leaf.nextLeaf = newLeafNode;
 		newLeafNode.previousLeaf = leaf;
 
-		for (int i = D; i < leaf.keys.size(); i++) {
-			leaf.keys.remove(i);
-			leaf.values.remove(i);
+		while(leaf.keys.size()>D){
+			leaf.keys.remove(D);
+			leaf.values.remove(D);
 		}
 
 		Entry<K, Node<K, T>> splitedNode = new NodeEntry<K, Node<K, T>>((K) newLeafNode.keys.get(0), newLeafNode);
@@ -381,7 +377,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 	public int handleLeafNodeUnderflow(LeafNode<K, T> left, LeafNode<K, T> right, IndexNode<K, T> parent) {
 		// merge left and right when both of them are underflow
 		if (left.keys.size() + right.keys.size() < 2 * D) {
-			for (int i = 0; i < right.keys.size(); i++) {
+			for (int i = 0; i < left.keys.size(); i++) {
 				right.insertSorted(left.keys.get(i), left.values.get(i));
 			}
 			if (left.previousLeaf != null) { // changes previousLeaf of merged

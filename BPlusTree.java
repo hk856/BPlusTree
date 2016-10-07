@@ -1,8 +1,5 @@
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Map.Entry;
-
-import com.sun.xml.internal.ws.api.ComponentFeature.Target;
 
 /**
  * BPlusTree Class Assumptions: 1. No duplicate keys inserted 2. Order D:
@@ -25,14 +22,14 @@ public class BPlusTree<K extends Comparable<K>, T> {
 		if (root == null)
 			return null;
 		if (root.isLeafNode) {
-			LeafNode<K, T> target = (LeafNode) root;
+			LeafNode<K, T> target = (LeafNode<K,T>) root;
 			for (int i = 0; i < target.keys.size(); i++) {
 				if (target.keys.get(i) == key) {
 					return target.values.get(i);
 				}
 			}
 		} else {
-			IndexNode<K, T> target = (IndexNode) root;
+			IndexNode<K, T> target = (IndexNode<K,T>) root;
 			ArrayList<Node<K, T>> children = target.children;
 			for (int i = 0; i < target.keys.size(); i++) {
 				if (target.keys.get(i).compareTo(key) > 0) {
@@ -62,10 +59,10 @@ public class BPlusTree<K extends Comparable<K>, T> {
 	public Entry<K, Node<K, T>> insert(K key, T value) {
 
 		if (root == null) {
-			root = new LeafNode(key, value);
+			root = new LeafNode<K,T>(key, value);
 
 		} else if (root.isLeafNode) {
-			LeafNode<K, T> target = (LeafNode) root;
+			LeafNode<K, T> target = (LeafNode<K,T>) root;
 			target.insertSorted(key, value);
 			if (target.isOverflowed()) {// root leaf node overflowed
 				Entry<K, Node<K, T>> splitedNode = splitLeafNode(target);// TODO:
@@ -82,7 +79,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 				return splitedNode;
 			}
 		} else { // root is link node
-			IndexNode<K, T> target = (IndexNode) root; // target is the node we
+			IndexNode<K, T> target = (IndexNode<K,T>) root; // target is the node we
 														// are visiting
 			ArrayList<Node<K, T>> children = target.children;
 			for (int i = 0; i < target.keys.size(); i++) { // for every child of
@@ -334,7 +331,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 				}
 			}
 		} else {// target is index node
-			IndexNode<K, T> indexTarget = (IndexNode) target;
+			IndexNode<K, T> indexTarget = (IndexNode<K,T>) target;
 			IndexNode<K, T> parent = indexTarget.parentNode;
 			if (parent == null)
 				return;

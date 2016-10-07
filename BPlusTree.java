@@ -73,11 +73,11 @@ public class BPlusTree<K extends Comparable<K>, T> {
 																			// need
 																			// more
 																			// input
-				if(this.isRealTree){
+				if (this.isRealTree) {
 					K newkey = splitedNode.getKey();
-					IndexNode<K,T> rightNode = (IndexNode<K,T>) splitedNode.getValue();
+					LeafNode<K, T> rightNode = (LeafNode<K, T>) splitedNode.getValue();// here
 					root = new IndexNode<K, T>(newkey, target, rightNode);
-					
+
 				}
 				return splitedNode;
 			}
@@ -120,11 +120,11 @@ public class BPlusTree<K extends Comparable<K>, T> {
 																						// need
 																						// more
 																						// input
-							if(this.isRealTree){
+							if (this.isRealTree) {
 								K newkey = splitedNode.getKey();
-								IndexNode<K,T> rightNode = (IndexNode<K,T>) splitedNode.getValue();
+								IndexNode<K, T> rightNode = (IndexNode<K, T>) splitedNode.getValue();
 								root = new IndexNode<K, T>(newkey, target, rightNode);
-								
+
 							}
 							return splitedNode;
 						} else {
@@ -196,8 +196,10 @@ public class BPlusTree<K extends Comparable<K>, T> {
 		}
 		LeafNode<K, T> newLeafNode = new LeafNode<K, T>(newKeys, newValues);
 		newLeafNode.nextLeaf = leaf.nextLeaf;
-		newLeafNode.nextLeaf.previousLeaf = newLeafNode;
+		if (newLeafNode.nextLeaf != null)
+			newLeafNode.nextLeaf.previousLeaf = newLeafNode;
 		leaf.nextLeaf = newLeafNode;
+		newLeafNode.previousLeaf = leaf;
 
 		for (int i = D; i < leaf.keys.size(); i++) {
 			leaf.keys.remove(i);
@@ -253,17 +255,40 @@ public class BPlusTree<K extends Comparable<K>, T> {
 		}
 		if (root.isLeafNode && isRealTree) {
 			LeafNode<K, T> target = (LeafNode<K, T>) root;
-			for (int i = 0; i < target.keys.size(); i++) {
-				if (target.keys.get(i).compareTo(key) == 0) {
-					target.values.remove(i);
-					target.keys.remove(i);
-					return;
-				} else {
-					System.out.println("Key not found!");
+			int index = target.keys.indexOf(key);
+			if (index == -1) {
+				System.out.println("key not found!!");
+			} else {
+				target.keys.remove(index);
+				target.values.remove(index);
+			}
+		} else if (root.isLeafNode && !isRealTree) { //bottom level leaf
+			LeafNode<K, T> target = (LeafNode<K, T>) root;
+			int index = target.keys.indexOf(key);
+			if (index == -1) {
+				System.out.println("key not found!!");
+			} else {
+				target.keys.remove(index);
+				target.values.remove(index);
+				if (target.isUnderflowed()) {
+					int underIndex = 0;
+					if (target.previousLeaf == null) {
+						underIndex = handleLeafNodeUnderflow(target, target.nextLeaf, target.parentNode);
+					} else if (target.nextLeaf == null) {
+						underIndex = handleLeafNodeUnderflow(target.previousLeaf, target, target.parentNode);
+					} else if (target.previousLeaf.keys.size() <= target.nextLeaf.keys.size()) {
+						underIndex = handleLeafNodeUnderflow(target, target.nextLeaf, target.parentNode);
+					} else if (target.previousLeaf.keys.size() > target.nextLeaf.keys.size()) {
+						underIndex = handleLeafNodeUnderflow(target.previousLeaf, target, target.parentNode);
+					}
+					if (underIndex == -1){
+						
+					}
+				
 				}
 			}
-		} else {
-
+		} else { //root is an index node
+			
 		}
 	}
 

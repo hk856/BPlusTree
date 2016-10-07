@@ -318,13 +318,14 @@ public class BPlusTree<K extends Comparable<K>, T> {
 
 			if (leafUnderFlow != -1) {
 				parent.keys.remove(leafUnderFlow);
-				parent.keys.add(leafUnderFlow, rightNode.keys.get(0));
-			} else {
-				int locationIndex = parent.children.indexOf(leftNode);
-				parent.keys.remove(locationIndex);
+				//parent.keys.add(leafUnderFlow, rightNode.keys.get(0));
 				if (parent.isUnderflowed()) {
 					underFlowBubbleUp(parent);
 				}
+			} else {
+				int locationIndex = parent.children.indexOf(leftNode);
+				parent.keys.remove(locationIndex);
+				parent.keys.add(locationIndex, rightNode.keys.get(0));
 			}
 		} else {// target is index node
 			IndexNode<K, T> indexTarget = (IndexNode<K,T>) target;

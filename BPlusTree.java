@@ -316,12 +316,13 @@ public class BPlusTree<K extends Comparable<K>, T> {
 			}
 			leafUnderFlow = handleLeafNodeUnderflow(leftNode, rightNode, parent);
 
-			if (leafUnderFlow != -1) {
-				parent.keys.remove(leafUnderFlow);
-				parent.keys.add(leafUnderFlow, rightNode.keys.get(0));
-			} else {
+			if (leafUnderFlow == -1) {
 				int locationIndex = parent.children.indexOf(leftNode);
 				parent.keys.remove(locationIndex);
+				parent.keys.add(locationIndex, rightNode.keys.get(0));
+			
+			} else {
+				parent.keys.remove(leafUnderFlow);
 				if (parent.isUnderflowed()) {
 					underFlowBubbleUp(parent);
 				}
@@ -350,12 +351,12 @@ public class BPlusTree<K extends Comparable<K>, T> {
 				if (indexUnderFlow == -1) {
 					int locationIndex = parent.children.indexOf(leftIndex);
 					parent.keys.remove(locationIndex);
+					parent.keys.add(locationIndex, rightIndex.keys.get(0));
+				} else { //redistributed left and right indexes
+					parent.keys.remove(indexUnderFlow);
 					if (parent.isUnderflowed()){
 						underFlowBubbleUp(parent);
 					}
-				} else { //redistributed left and right indexes
-					parent.keys.remove(indexUnderFlow);
-					parent.keys.add(indexUnderFlow, rightIndex.keys.get(0));
 				}
 			}
 		}

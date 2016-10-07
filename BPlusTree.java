@@ -416,12 +416,14 @@ public class BPlusTree<K extends Comparable<K>, T> {
 	public int handleIndexNodeUnderflow(IndexNode<K, T> leftIndex, IndexNode<K, T> rightIndex, IndexNode<K, T> parent) {
 		
 		//merge case
+		//move everything from left to right: children + keys
 		if(leftIndex.keys.size() + rightIndex.keys.size() < 2*D){
 			// add each child from leftIndex to rightIndex
 			// set child parent to rightIndex
 			for(int i = leftIndex.children.size() -1; i >=0; i--){
-				rightIndex.children.add(0, leftIndex.children.get(i));
-				leftIndex.children.get(i).parentNode = rightIndex;
+				Node<K,T> child = leftIndex.children.get(i);
+				rightIndex.children.add(0, child);
+				child.parentNode = rightIndex;
 			}
 			
 			int key = parent.children.indexOf(leftIndex);
@@ -435,40 +437,63 @@ public class BPlusTree<K extends Comparable<K>, T> {
 			return key;
 		
 		}
-		else{
+		else{  
+			// when left is bigger, borrow left to right
+			// children = keys + 1
 			if(leftIndex.keys.size() > rightIndex.keys.size()){
-				//move left children to the right until D keys in the left
-				for(int i = D + 1; i <= leftIndex.children.size(); i++){
-					rightIndex.children.add(0, leftIndex.children.get(leftIndex.children.size()-1));
-					leftIndex.children.get(leftIndex.children.size()-1).parentNode = rightIndex;
+				//move left children to the right until D keys in the left, D+1 children left
+				for(int i = D + 1; i < leftIndex.children.size(); i++){
+					Node<K,T> child = leftIndex.children.get(leftIndex.children.size()-1);
 					
+					rightIndex.children.add(0, child);
+					child.parentNode = rightIndex;
 					leftIndex.children.remove(leftIndex.children.size()-1);
 				}
 				
+				// restructure parent node
+				// get old split key in parent and add it to the rightIndex
+				// use the last key in leftIndex to be the new split key in parent
 				int key = parent.children.indexOf(leftIndex);
 		        K splitKey = parent.keys.get(key);
 		        rightIndex.keys.add(0, splitKey);
+		        K newSplitKey = leftIndex.keys.get(D-1);
 		        parent.keys.remove(key);
-	            parent.keys.add(key, splitKey);
+	            parent.keys.add(key, newSplitKey);
 	            
-	            // move keys to right node
-	            for (int i = leftIndex.keys.size() - 1; i >= D+1; i--){
+	            // move rest keys from left to right node until D 
+	            for (int i = leftIndex.keys.size() - 1; i >= D; i--){
 	                K newkey = leftIndex.keys.get(i);
 	                rightIndex.keys.add(0, newkey);
+	                leftIndex.keys.remove(i);
 	            }
-	            // remove keys in left node
-	            for (int i = leftIndex.keys.size() - 1; i>=D; i--){
-	                leftIndex.keys.remove(D);
-	            }
-
-				
+			}else{
+				// when right is bigger, borrow right to left
+				// until left has D keys
+				while(leftIndex.keys.size() < D){
+					// move parent key to left, then move right[0] to be the new parent
+					int key = parent.children.indexOf(leftIndex);
+					K oldSplitKey = parent.keys.get(key);
+					K newSplitKey = rightIndex.keys.get(0);
+					leftIndex.keys.add(oldSplitKey);
+					
+					// move child
+					Node<K,T> child = rightIndex.children.get(0);
+					leftIndex.children.add(child);
+					child.parentNode = leftIndex;
+					rightIndex.children.remove(0);
+					
+					// move key
+					parent.keys.remove(key);
+					parent.keys.add(key, newSplitKey);
+					rightIndex.keys.remove(0);
+				}
 				
 			}
 			
 			return -1;
 		}
 		
-		
+	
 		
 	}
 

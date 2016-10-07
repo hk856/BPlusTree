@@ -301,11 +301,15 @@ public class BPlusTree<K extends Comparable<K>, T> {
 				right.values.remove(0);
 
 			} else { // right has fewer node, borrow the tail of left
-				for (int i = left.keys.size() - 1; i >= D; i--) {
-					right.insertSorted(left.keys.get(i), left.values.get(i));
-					left.keys.remove(i);
-					left.values.remove(i);
-				}
+	            // only leave D elements in left node
+	            int sizeofLeft = left.keys.size();
+	            for (int i=0; i < sizeofLeft - D; i++){
+	                right.insertSorted(left.keys.get(D), left.values.get(D));
+	                left.keys.remove(D);
+	                left.values.remove(D);
+	            }
+
+				
 			}
 			int key = parent.children.indexOf(right) - 1;
 			parent.keys.remove(key);
@@ -328,6 +332,17 @@ public class BPlusTree<K extends Comparable<K>, T> {
 	 *         delete the splitkey later on. -1 otherwise
 	 */
 	public int handleIndexNodeUnderflow(IndexNode<K, T> leftIndex, IndexNode<K, T> rightIndex, IndexNode<K, T> parent) {
+		
+		//merge case
+		if(leftIndex.keys.size() + rightIndex.keys.size() < 2*D){
+			for(int i =0; i < leftIndex.keys.size(); i++) {
+				
+				
+			}
+			
+		}
+		
+		
 		return -1;
 	}
 

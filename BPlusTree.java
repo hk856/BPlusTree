@@ -384,10 +384,11 @@ public class BPlusTree<K extends Comparable<K>, T> {
 			for (int i = 0; i < right.keys.size(); i++) {
 				right.insertSorted(left.keys.get(i), left.values.get(i));
 			}
+			right.previousLeaf = left.previousLeaf;
 			if (left.previousLeaf != null) { // changes previousLeaf of merged
 												// node if left has one
 				left.previousLeaf.nextLeaf = right;
-				right.previousLeaf = left.previousLeaf;
+				
 			}
 			int key = parent.children.indexOf(right) - 1;
 

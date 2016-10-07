@@ -262,7 +262,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 				target.keys.remove(index);
 				target.values.remove(index);
 			}
-		} else if (root.isLeafNode && !isRealTree) { //bottom level leaf
+		} else if (root.isLeafNode && !isRealTree) { // bottom level leaf
 			LeafNode<K, T> target = (LeafNode<K, T>) root;
 			int index = target.keys.indexOf(key);
 			if (index == -1) {
@@ -271,24 +271,82 @@ public class BPlusTree<K extends Comparable<K>, T> {
 				target.keys.remove(index);
 				target.values.remove(index);
 				if (target.isUnderflowed()) {
-					int underIndex = 0;
+					int leafUnderFlow = 0;
+					LeafNode<K, T> leftNode = null;
+					LeafNode<K, T> rightNode = null;
+					IndexNode<K, T> parent = target.parentNode;
 					if (target.previousLeaf == null) {
-						underIndex = handleLeafNodeUnderflow(target, target.nextLeaf, target.parentNode);
+						leftNode = target;
+						rightNode = target.nextLeaf;
 					} else if (target.nextLeaf == null) {
-						underIndex = handleLeafNodeUnderflow(target.previousLeaf, target, target.parentNode);
+						leftNode = target.previousLeaf;
+						rightNode = target;
 					} else if (target.previousLeaf.keys.size() <= target.nextLeaf.keys.size()) {
-						underIndex = handleLeafNodeUnderflow(target, target.nextLeaf, target.parentNode);
+						leftNode = target;
+						rightNode = target.nextLeaf;
 					} else if (target.previousLeaf.keys.size() > target.nextLeaf.keys.size()) {
-						underIndex = handleLeafNodeUnderflow(target.previousLeaf, target, target.parentNode);
+						leftNode = target.previousLeaf;
+						rightNode = target;
 					}
-					if (underIndex == -1){
-						
+					leafUnderFlow = handleLeafNodeUnderflow(leftNode, rightNode, parent);
+
+					if (leafUnderFlow != -1) {
+						parent.keys.remove(leafUnderFlow);
+						parent.keys.add(leafUnderFlow, rightNode.keys.get(0));
+					} else {
+						int locationIndex = parent.children.indexOf(leftNode);
+						parent.keys.remove(locationIndex);
+						// after removing the key after merging
+						if (parent.isUnderflowed()) {
+							int thisIndex = parent.parentNode.children.indexOf(parent);
+							IndexNode<K, T> leftIndex = (IndexNode<K, T>) parent.parentNode.children.get(thisIndex - 1);
+							IndexNode<K, T> rightIndex = (IndexNode<K, T>) parent.parentNode.children
+									.get(thisIndex + 1);
+							int indexUnderFlow = 0;
+							if (leftIndex == null) {
+								indexUnderFlow = 
+										handleIndexNodeUnderflow(parent, rightIndex, parent.parentNode);
+							
+							}else if (rightIndex == null){
+								indexUnderFlow = 
+										handleIndexNodeUnderflow(leftIndex, parent, parent.parentNode);
+							}else if (leftIndex.keys.size()<=rightIndex.keys.size()) {
+								indexUnderFlow = 
+										handleIndexNodeUnderflow(parent, rightIndex, parent.parentNode);
+							
+							}else if (leftIndex.keys.size()>rightIndex.keys.size()){
+								indexUnderFlow = 
+										handleIndexNodeUnderflow(leftIndex, parent, parent.parentNode);
+							}
+							
+							
+						}
 					}
-				
 				}
 			}
-		} else { //root is an index node
-			
+		} else { // root is an index node
+			IndexNode<K, T> target = (IndexNode<K, T>) root;
+			ArrayList<Node<K, T>> children = target.children;
+			if (target.keys.get(target.keys.size() - 1).compareTo(key) < 0) {
+				BPlusTree<K, T> tree = new BPlusTree<K, T>();
+				tree.isRealTree = false;
+				Node<K, T> nextTarget = children.get(target.keys.size() - 1);
+				tree.root = nextTarget;
+				tree.delete(key);
+				return;
+			} else {
+				for (int i = 0; i < target.keys.size(); i++) {
+					if (target.keys.get(i).compareTo(key) > 0) {
+						BPlusTree<K, T> tree = new BPlusTree<K, T>();
+						tree.isRealTree = false;
+						Node<K, T> nextTarget = children.get(i);
+						tree.root = nextTarget;
+						tree.delete(key);
+						return;
+					}
+				}
+			}
+
 		}
 	}
 

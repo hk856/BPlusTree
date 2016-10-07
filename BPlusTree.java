@@ -188,11 +188,11 @@ public class BPlusTree<K extends Comparable<K>, T> {
 			newValues.add(leaf.values.get(i));
 		}
 		LeafNode<K, T> newLeafNode = new LeafNode<K, T>(newKeys, newValues);
-		newLeafNode.nextLeaf = leaf.nextLeaf;
+		
 		if (newLeafNode.nextLeaf != null)
 			newLeafNode.nextLeaf.previousLeaf = newLeafNode;
-		leaf.nextLeaf = newLeafNode;
-		newLeafNode.previousLeaf = leaf;
+			leaf.nextLeaf = newLeafNode;
+			newLeafNode.previousLeaf = leaf;
 
 		while(leaf.keys.size()>D){
 			leaf.keys.remove(D);
@@ -381,10 +381,11 @@ public class BPlusTree<K extends Comparable<K>, T> {
 			for (int i = 0; i < left.keys.size(); i++) {
 				right.insertSorted(left.keys.get(i), left.values.get(i));
 			}
+			right.previousLeaf = left.previousLeaf;
 			if (left.previousLeaf != null) { // changes previousLeaf of merged
 												// node if left has one
 				left.previousLeaf.nextLeaf = right;
-				right.previousLeaf = left.previousLeaf;
+				
 			}
 			int key = parent.children.indexOf(right) - 1;
 

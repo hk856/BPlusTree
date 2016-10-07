@@ -384,11 +384,14 @@ public class BPlusTree<K extends Comparable<K>, T> {
 				right.values.remove(0);
 
 			} else { // right has fewer node, borrow the tail of left
-				for (int i = left.keys.size() - 1; i >= D; i--) {
-					right.insertSorted(left.keys.get(i), left.values.get(i));
-					left.keys.remove(i);
-					left.values.remove(i);
-				}
+	            // only leave D elements in left node
+	            int sizeofLeft = left.keys.size();
+	            for (int i=0; i < sizeofLeft - D; i++){
+	                right.insertSorted(left.keys.get(D), left.values.get(D));
+	                left.keys.remove(D);
+	                left.values.remove(D);
+	            }
+	            
 			}
 			int key = parent.children.indexOf(right) - 1;
 			parent.keys.remove(key);
@@ -411,7 +414,62 @@ public class BPlusTree<K extends Comparable<K>, T> {
 	 *         delete the splitkey later on. -1 otherwise
 	 */
 	public int handleIndexNodeUnderflow(IndexNode<K, T> leftIndex, IndexNode<K, T> rightIndex, IndexNode<K, T> parent) {
-		return -1;
+		
+		//merge case
+		if(leftIndex.keys.size() + rightIndex.keys.size() < 2*D){
+			// add each child from leftIndex to rightIndex
+			// set child parent to rightIndex
+			for(int i = leftIndex.children.size() -1; i >=0; i--){
+				rightIndex.children.add(0, leftIndex.children.get(i));
+				leftIndex.children.get(i).parentNode = rightIndex;
+			}
+			
+			int key = parent.children.indexOf(leftIndex);
+	        K splitKey = parent.keys.get(key);
+	        rightIndex.keys.add(0, splitKey);
+	        
+	        // add keys from left to the right
+			for(int i =leftIndex.keys.size()-1; i >= 0; i--) {
+				rightIndex.keys.add(0, leftIndex.keys.get(i));	
+			}
+			return key;
+		
+		}
+		else{
+			if(leftIndex.keys.size() > rightIndex.keys.size()){
+				//move left children to the right until D keys in the left
+				for(int i = D + 1; i <= leftIndex.children.size(); i++){
+					rightIndex.children.add(0, leftIndex.children.get(leftIndex.children.size()-1));
+					leftIndex.children.get(leftIndex.children.size()-1).parentNode = rightIndex;
+					
+					leftIndex.children.remove(leftIndex.children.size()-1);
+				}
+				
+				int key = parent.children.indexOf(leftIndex);
+		        K splitKey = parent.keys.get(key);
+		        rightIndex.keys.add(0, splitKey);
+		        parent.keys.remove(key);
+	            parent.keys.add(key, splitKey);
+	            
+	            // move keys to right node
+	            for (int i = leftIndex.keys.size() - 1; i >= D+1; i--){
+	                K newkey = leftIndex.keys.get(i);
+	                rightIndex.keys.add(0, newkey);
+	            }
+	            // remove keys in left node
+	            for (int i = leftIndex.keys.size() - 1; i>=D; i--){
+	                leftIndex.keys.remove(D);
+	            }
+
+				
+				
+			}
+			
+			return -1;
+		}
+		
+		
+		
 	}
 
 }

@@ -223,15 +223,14 @@ public class BPlusTree<K extends Comparable<K>, T> {
 			newChildren.add(index.children.get(i));
 		}
 		newChildren.add(index.children.get(index.keys.size()));
+
+
 		
-		
-		for (int i = D; i < index.keys.size(); i++) {
-			index.keys.remove(i);
-			index.children.remove(i + 1);
+		while(D<index.keys.size()) {
+			index.keys.remove(D);
+			index.children.remove(D + 1);//TODO critical
 		}
-		
-		
-		index.children.remove(index.children.get(index.keys.size()));
+
 
 		IndexNode<K, T> newIndexNode = new IndexNode<K, T>(newKeys, newChildren);
 
@@ -320,7 +319,8 @@ public class BPlusTree<K extends Comparable<K>, T> {
 			leafUnderFlow = handleLeafNodeUnderflow(leftNode, rightNode, parent);
 
 			if (leafUnderFlow == -1) {
-				int locationIndex = parent.children.indexOf(leftNode);
+				int locationIndex = parent.children.indexOf(rightNode)-1;
+				System.out.println("location index is: "+locationIndex);
 				parent.keys.remove(locationIndex);
 				parent.keys.add(locationIndex, rightNode.keys.get(0));
 			
@@ -339,20 +339,26 @@ public class BPlusTree<K extends Comparable<K>, T> {
 				int thisIndex = parent.children.indexOf(target);
 				IndexNode<K, T> leftIndex = (IndexNode<K, T>) indexTarget.parentNode.children.get(thisIndex - 1);
 				IndexNode<K, T> rightIndex = (IndexNode<K, T>) indexTarget.parentNode.children.get(thisIndex + 1);
+				IndexNode<K, T> left=null;
+				IndexNode<K, T> right=null;
 				int indexUnderFlow = 0;
 				if (leftIndex == null) {
-					indexUnderFlow = handleIndexNodeUnderflow(indexTarget, rightIndex, parent);
+					left = indexTarget;
+					right = rightIndex;
 				} else if (rightIndex == null) {
-					indexUnderFlow = handleIndexNodeUnderflow(leftIndex, indexTarget, parent);
+					left = leftIndex;
+					right = indexTarget;
 				} else if (leftIndex.keys.size() <= rightIndex.keys.size()) {
-					indexUnderFlow = handleIndexNodeUnderflow(indexTarget, rightIndex, parent);
-
+					left = indexTarget;
+					right = rightIndex;
 				} else if (leftIndex.keys.size() > rightIndex.keys.size()) {
-					indexUnderFlow = handleIndexNodeUnderflow(leftIndex, indexTarget, parent);
+					left = leftIndex;
+					right = indexTarget;
 				}
-
+				indexUnderFlow = handleIndexNodeUnderflow(left, right, parent);
+				
 				if (indexUnderFlow == -1) {
-					int locationIndex = parent.children.indexOf(leftIndex);
+					int locationIndex = parent.children.indexOf(right)-1;
 					parent.keys.remove(locationIndex);
 					parent.keys.add(locationIndex, rightIndex.keys.get(0));
 				} else { //redistributed left and right indexes

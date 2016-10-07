@@ -11,6 +11,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 
 	public Node<K, T> root;
 	public static final int D = 2;
+	public boolean isRealTree = true;
 
 	/**
 	 * TODO Search the value for a specific key
@@ -34,6 +35,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 			for (int i = 0; i < target.keys.size(); i++) {
 				if (target.keys.get(i).compareTo(key) > 0) {
 					BPlusTree<K, T> tree = new BPlusTree<K, T>();
+					tree.isRealTree = false;
 					tree.root = children.get(i);
 					return tree.search(key);
 				}
@@ -41,6 +43,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 			if (target.keys.get(target.keys.size()-1).compareTo(key)<0){
 				//if key is larger than every key in the list
 				BPlusTree<K, T> tree = new BPlusTree<K, T>();
+				tree.isRealTree = false;
 				tree.root = children.get(target.keys.size());
 				return tree.search(key);
 			}
@@ -73,6 +76,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 				if (target.keys.get(i).compareTo(key)>0){ //if the key of the child node is first time bigger than the insert key
 														// that child node should be the (grand)parent of the insert node
 					BPlusTree<K, T> tree = new BPlusTree<K, T>();
+					tree.isRealTree = false;
 					Node<K,T> nextTarget = children.get(i);
 					tree.root = nextTarget;
 					Entry<K, Node<K, T>> splitedPoint = tree.insert(key, value);
@@ -84,6 +88,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 						target.insertSorted(splitedPoint, i);
 						if(target.isOverflowed()){//if adding the right splited node will make target overflow
 							Entry<K, Node<K, T>> splitedNode = splitIndexNode(target);//TODO: might need more input
+							
 							return splitedNode;
 						}else{
 							return null;
@@ -97,6 +102,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 			if (target.keys.get(target.keys.size()-1).compareTo(key)<0){
 				//last child is the (grand)parent
 				BPlusTree<K, T> tree = new BPlusTree<K, T>();
+				tree.isRealTree = false;
 				Node<K,T> nextTarget = children.get(target.keys.size());
 				tree.root = nextTarget;
 				Entry<K, Node<K, T>> splitedPoint = tree.insert(key, value);

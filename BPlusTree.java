@@ -131,7 +131,25 @@ public class BPlusTree<K extends Comparable<K>, T> {
 	 */
 	public Entry<K, Node<K, T>> splitLeafNode(LeafNode<K, T> leaf) { // param...
 		
-		return null;
+		ArrayList<K> newKeys = new ArrayList<K>();
+		ArrayList<T> newValues = new ArrayList<T>();
+		for (int i = D; i < leaf.keys.size(); i++){
+			newKeys.add(leaf.keys.get(i));
+			newValues.add(leaf.values.get(i));
+		}
+		LeafNode<K, T> newLeafNode = new LeafNode<K, T>(newKeys, newValues);
+		newLeafNode.nextLeaf = leaf.nextLeaf;
+		newLeafNode.nextLeaf.previousLeaf = newLeafNode;
+		leaf.nextLeaf = newLeafNode;
+		
+		for (int i = D; i < leaf.keys.size(); i++){
+			leaf.keys.remove(i);
+			leaf.values.remove(i);
+		}
+		
+		Entry<K, Node<K, T>> splitedNode = new NodeEntry<K, Node<K, T>>((K)newLeafNode.keys.get(0), newLeafNode);
+		return splitedNode;
+	
 	}
 
 	/**
@@ -143,8 +161,28 @@ public class BPlusTree<K extends Comparable<K>, T> {
 	 * @return new key/node pair as an Entry
 	 */
 	public Entry<K, Node<K, T>> splitIndexNode(IndexNode<K, T> index) { // param
-
-		return null;
+		ArrayList<K> newKeys = new ArrayList<K>();
+		ArrayList<Node<K,T>> newChildren = new ArrayList<Node<K, T>>();
+		
+		K key = index.keys.get(D);
+		
+		for(int i = D+1; i< index.keys.size(); i++){
+			newKeys.add(index.keys.get(i));
+			newChildren.add(index.children.get(i));
+		}
+		newChildren.add(index.children.get(index.keys.size()));
+		
+		for (int i = D; i < index.keys.size(); i++){
+			index.keys.remove(i);
+			index.children.remove(i+1);
+		}
+		index.children.remove(index.children.get(index.keys.size()));
+		
+		IndexNode<K, T> newIndexNode = new IndexNode<K, T>(newKeys, newChildren);
+		
+		Entry<K, Node<K, T>> splitedNode = new NodeEntry<K, Node<K, T>>(key, newIndexNode);
+		
+		return splitedNode;
 	}
 
 	/**

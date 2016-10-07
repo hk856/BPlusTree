@@ -58,8 +58,9 @@ public class BPlusTree<K extends Comparable<K>, T> {
 
 		if (root == null) {
 			root = new LeafNode(key, value);
+			
 		} else if (root.isLeafNode) {
-			LeafNode target = (LeafNode) root;
+			LeafNode<K, T> target = (LeafNode) root;
 			target.insertSorted(key, value);
 			if (target.isOverflowed()) {//root leaf node overflowed
 				Entry<K, Node<K, T>> splitedNode = splitLeafNode(target);//TODO: might need more input
@@ -129,7 +130,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 	 * @return the key/node pair as an Entry
 	 */
 	public Entry<K, Node<K, T>> splitLeafNode(LeafNode<K, T> leaf) { // param...
-
+		
 		return null;
 	}
 

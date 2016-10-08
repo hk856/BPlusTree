@@ -156,7 +156,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 							K newkey = splitedNode.getKey();
 							IndexNode<K, T> rightNode = (IndexNode<K, T>) splitedNode.getValue();
 							root = new IndexNode<K, T>(newkey, target, rightNode);
-
+							
 						}
 						return splitedNode;
 					} else {
@@ -224,7 +224,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 		}
 		newChildren.add(index.children.get(index.keys.size()));
 
-
+		
 		
 		while(D<index.keys.size()) {
 			index.keys.remove(D);
@@ -233,7 +233,8 @@ public class BPlusTree<K extends Comparable<K>, T> {
 
 
 		IndexNode<K, T> newIndexNode = new IndexNode<K, T>(newKeys, newChildren);
-
+		
+		
 		Entry<K, Node<K, T>> splitedNode = new NodeEntry<K, Node<K, T>>(key, newIndexNode);
 
 		return splitedNode;
@@ -275,7 +276,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 			if (target.keys.get(target.keys.size() - 1).compareTo(key) < 0) {
 				BPlusTree<K, T> tree = new BPlusTree<K, T>();
 				tree.isRealTree = false;
-				Node<K, T> nextTarget = children.get(target.keys.size() - 1);
+				Node<K, T> nextTarget = children.get(target.keys.size());
 				tree.root = nextTarget;
 				tree.delete(key);
 				return;
@@ -461,7 +462,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 				rightIndex.keys.add(0, leftIndex.keys.get(i));
 			}
 			
-		
+			
 			return key;
 
 		} else {

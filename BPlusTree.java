@@ -157,9 +157,11 @@ public class BPlusTree<K extends Comparable<K>, T> {
 							IndexNode<K, T> rightNode = (IndexNode<K, T>) splitedNode.getValue();
 							rightNode.myTree = target.myTree;
 							root = new IndexNode<K, T>(newkey, target, rightNode);
+
 							root.myTree = target.myTree;
 							target.parentNode = (IndexNode<K, T>) root;
 							rightNode.parentNode = (IndexNode<K, T>) root;
+
 
 						}
 						return splitedNode;
@@ -229,7 +231,8 @@ public class BPlusTree<K extends Comparable<K>, T> {
 		}
 		newChildren.add(index.children.get(index.keys.size()));
 
-		while (D < index.keys.size()) {
+
+		while(D<index.keys.size()) {
 			index.keys.remove(D);
 			index.children.remove(D + 1);// TODO critical
 		}
@@ -277,7 +280,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 			if (target.keys.get(target.keys.size() - 1).compareTo(key) < 0) {
 				BPlusTree<K, T> tree = new BPlusTree<K, T>();
 				tree.isRealTree = false;
-				Node<K, T> nextTarget = children.get(target.keys.size() - 1);
+				Node<K, T> nextTarget = children.get(target.keys.size());
 				tree.root = nextTarget;
 				tree.delete(key);
 				return;
@@ -411,6 +414,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 			}
 
 			int leftPosition = parent.children.indexOf(left);
+			
 			parent.children.remove(leftPosition);
 
 			int key = parent.children.indexOf(right);
@@ -433,9 +437,9 @@ public class BPlusTree<K extends Comparable<K>, T> {
 				}
 
 			}
-			int key = parent.children.indexOf(right) - 1;
-			parent.keys.remove(key);
-			parent.keys.add(right.keys.get(0));
+//			int key = parent.children.indexOf(right) - 1;
+//			parent.keys.remove(key);
+//			parent.keys.add(right.keys.get(0));
 			return -1;
 
 		}

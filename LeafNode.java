@@ -7,6 +7,7 @@ public class LeafNode<K extends Comparable<K>, T> extends Node<K, T> {
 	protected LeafNode<K, T> nextLeaf;
 	protected LeafNode<K, T> previousLeaf;
 	protected IndexNode<K, T> parentNode;
+	protected BPlusTree<K, T> myTree;
 	
 	public LeafNode(K firstKey, T firstValue) {
 		isLeafNode = true;
@@ -14,7 +15,7 @@ public class LeafNode<K extends Comparable<K>, T> extends Node<K, T> {
 		values = new ArrayList<T>();
 		keys.add(firstKey);
 		values.add(firstValue);
-
+		
 	}
 
 	public LeafNode(List<K> newKeys, List<T> newValues) {

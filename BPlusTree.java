@@ -22,14 +22,14 @@ public class BPlusTree<K extends Comparable<K>, T> {
 		if (root == null)
 			return null;
 		if (root.isLeafNode) {
-			LeafNode<K, T> target = (LeafNode<K,T>) root;
+			LeafNode<K, T> target = (LeafNode<K, T>) root;
 			for (int i = 0; i < target.keys.size(); i++) {
 				if (target.keys.get(i) == key) {
 					return target.values.get(i);
 				}
 			}
 		} else {
-			IndexNode<K, T> target = (IndexNode<K,T>) root;
+			IndexNode<K, T> target = (IndexNode<K, T>) root;
 			ArrayList<Node<K, T>> children = target.children;
 			for (int i = 0; i < target.keys.size(); i++) {
 				if (target.keys.get(i).compareTo(key) > 0) {
@@ -59,10 +59,12 @@ public class BPlusTree<K extends Comparable<K>, T> {
 	public Entry<K, Node<K, T>> insert(K key, T value) {
 
 		if (root == null) {
-			root = new LeafNode<K,T>(key, value);
-
+			root = new LeafNode<K, T>(key, value);
+			root.myTree=this;
 		} else if (root.isLeafNode) {
-			LeafNode<K, T> target = (LeafNode<K,T>) root;
+			LeafNode<K, T> target = (LeafNode<K, T>) root;
+//			System.out.println(root.myTree);
+
 			target.insertSorted(key, value);
 			if (target.isOverflowed()) {// root leaf node overflowed
 				Entry<K, Node<K, T>> splitedNode = splitLeafNode(target);
@@ -70,13 +72,16 @@ public class BPlusTree<K extends Comparable<K>, T> {
 					K newkey = splitedNode.getKey();
 					LeafNode<K, T> rightNode = (LeafNode<K, T>) splitedNode.getValue();// here
 					root = new IndexNode<K, T>(newkey, target, rightNode);
-
+					root.myTree = target.myTree;
+					target.parentNode = (IndexNode<K, T>) root;
+					rightNode.parentNode = (IndexNode<K, T>) root;
 				}
 				return splitedNode;
 			}
 		} else { // root is link node
-			IndexNode<K, T> target = (IndexNode<K,T>) root; // target is the node we
-														// are visiting
+			IndexNode<K, T> target = (IndexNode<K, T>) root; // target is the
+																// node we
+			// are visiting
 			ArrayList<Node<K, T>> children = target.children;
 			for (int i = 0; i < target.keys.size(); i++) { // for every child of
 															// target
@@ -108,16 +113,15 @@ public class BPlusTree<K extends Comparable<K>, T> {
 						if (target.isOverflowed()) {// if adding the right
 													// splited node will make
 													// target overflow
-							Entry<K, Node<K, T>> splitedNode = splitIndexNode(target);// TODO:
-																						// might
-																						// need
-																						// more
-																						// input
+							Entry<K, Node<K, T>> splitedNode = splitIndexNode(target);
 							if (this.isRealTree) {
 								K newkey = splitedNode.getKey();
 								IndexNode<K, T> rightNode = (IndexNode<K, T>) splitedNode.getValue();
+								rightNode.myTree = target.myTree;
 								root = new IndexNode<K, T>(newkey, target, rightNode);
-
+								root.myTree = target.myTree;
+								target.parentNode = (IndexNode<K, T>) root;
+								rightNode.parentNode = (IndexNode<K, T>) root;
 							}
 							return splitedNode;
 						} else {
@@ -147,15 +151,15 @@ public class BPlusTree<K extends Comparable<K>, T> {
 					if (target.isOverflowed()) {// if adding the right splited
 												// node will make target
 												// overflow
-						Entry<K, Node<K, T>> splitedNode = splitIndexNode(target);// TODO:
-																					// might
-																					// need
-																					// more
-																					// input
+						Entry<K, Node<K, T>> splitedNode = splitIndexNode(target);
 						if (this.isRealTree) {
 							K newkey = splitedNode.getKey();
 							IndexNode<K, T> rightNode = (IndexNode<K, T>) splitedNode.getValue();
+							rightNode.myTree = target.myTree;
 							root = new IndexNode<K, T>(newkey, target, rightNode);
+							root.myTree = target.myTree;
+							target.parentNode = (IndexNode<K, T>) root;
+							rightNode.parentNode = (IndexNode<K, T>) root;
 
 						}
 						return splitedNode;
@@ -188,17 +192,18 @@ public class BPlusTree<K extends Comparable<K>, T> {
 			newValues.add(leaf.values.get(i));
 		}
 		LeafNode<K, T> newLeafNode = new LeafNode<K, T>(newKeys, newValues);
-		
+
 		if (newLeafNode.nextLeaf != null)
 			newLeafNode.nextLeaf.previousLeaf = newLeafNode;
-			leaf.nextLeaf = newLeafNode;
-			newLeafNode.previousLeaf = leaf;
+		leaf.nextLeaf = newLeafNode;
+		newLeafNode.previousLeaf = leaf;
 
-		while(leaf.keys.size()>D){
+		while (leaf.keys.size() > D) {
 			leaf.keys.remove(D);
 			leaf.values.remove(D);
 		}
-
+		newLeafNode.myTree = leaf.myTree;
+		
 		Entry<K, Node<K, T>> splitedNode = new NodeEntry<K, Node<K, T>>((K) newLeafNode.keys.get(0), newLeafNode);
 		return splitedNode;
 
@@ -224,16 +229,15 @@ public class BPlusTree<K extends Comparable<K>, T> {
 		}
 		newChildren.add(index.children.get(index.keys.size()));
 
-		
-		while(D<index.keys.size()) {
+		while (D < index.keys.size()) {
 			index.keys.remove(D);
-			index.children.remove(D + 1);//TODO critical
+			index.children.remove(D + 1);// TODO critical
 		}
 
 		IndexNode<K, T> newIndexNode = new IndexNode<K, T>(newKeys, newChildren);
-
+		newIndexNode.myTree = index.myTree;
 		Entry<K, Node<K, T>> splitedNode = new NodeEntry<K, Node<K, T>>(key, newIndexNode);
-
+		
 		return splitedNode;
 	}
 
@@ -317,53 +321,65 @@ public class BPlusTree<K extends Comparable<K>, T> {
 			leafUnderFlow = handleLeafNodeUnderflow(leftNode, rightNode, parent);
 
 			if (leafUnderFlow == -1) {
-				int locationIndex = parent.children.indexOf(rightNode)-1;
-				System.out.println("location index is: "+locationIndex);
+				int locationIndex = parent.children.indexOf(rightNode) - 1;
+				System.out.println("location index is: " + locationIndex);
 				parent.keys.remove(locationIndex);
 				parent.keys.add(locationIndex, rightNode.keys.get(0));
-			
+
 			} else {
 				parent.keys.remove(leafUnderFlow);
 				if (parent.isUnderflowed()) {
+
 					underFlowBubbleUp(parent);
 				}
 			}
 		} else {// target is index node
-			IndexNode<K, T> indexTarget = (IndexNode<K,T>) target;
-			IndexNode<K, T> parent = indexTarget.parentNode;
-			if (parent == null)
+			IndexNode<K, T> indexTarget = (IndexNode<K, T>) target;
+			if (indexTarget.keys.size()==0){
+//				System.out.println(indexTarget.myTree);
+//						indexTarget.children.get(0);
 				return;
-			else {
+			}
+			IndexNode<K, T> parent = indexTarget.parentNode;
+			if (parent == null) {
+				return;
+			} else {
 				int thisIndex = parent.children.indexOf(target);
-				IndexNode<K, T> leftIndex = (IndexNode<K, T>) indexTarget.parentNode.children.get(thisIndex - 1);
-				IndexNode<K, T> rightIndex = (IndexNode<K, T>) indexTarget.parentNode.children.get(thisIndex + 1);
-				IndexNode<K, T> left=null;
-				IndexNode<K, T> right=null;
-				int indexUnderFlow = 0;
-				if (leftIndex == null) {
-					left = indexTarget;
-					right = rightIndex;
-				} else if (rightIndex == null) {
-					left = leftIndex;
-					right = indexTarget;
-				} else if (leftIndex.keys.size() <= rightIndex.keys.size()) {
-					left = indexTarget;
-					right = rightIndex;
-				} else if (leftIndex.keys.size() > rightIndex.keys.size()) {
-					left = leftIndex;
-					right = indexTarget;
-				}
-				indexUnderFlow = handleIndexNodeUnderflow(left, right, parent);
-				
-				if (indexUnderFlow == -1) {
-					int locationIndex = parent.children.indexOf(right)-1;
-					parent.keys.remove(locationIndex);
-					parent.keys.add(locationIndex, rightIndex.keys.get(0));
-				} else { //redistributed left and right indexes
-					parent.keys.remove(indexUnderFlow);
-					if (parent.isUnderflowed()){
-						underFlowBubbleUp(parent);
+				IndexNode<K, T> left = null;
+				IndexNode<K, T> right = null;
+				if (thisIndex == 0) {
+					left = (IndexNode<K, T>) parent.children.get(thisIndex);
+					right = (IndexNode<K, T>) parent.children.get(thisIndex + 1);
+				} else if (thisIndex == parent.children.size() - 1) {
+					left = (IndexNode<K, T>) parent.children.get(thisIndex - 1);
+					right = (IndexNode<K, T>) parent.children.get(thisIndex);
+				} else {
+					IndexNode<K, T> leftIndex = (IndexNode<K, T>) parent.children.get(thisIndex - 1);
+					IndexNode<K, T> rightIndex = (IndexNode<K, T>) parent.children.get(thisIndex + 1);
+					if (leftIndex.keys.size() <= rightIndex.keys.size()) {
+						left = indexTarget;
+						right = rightIndex;
+					} else if (leftIndex.keys.size() > rightIndex.keys.size()) {
+						left = leftIndex;
+						right = indexTarget;
 					}
+				}
+
+				int indexUnderFlow = handleIndexNodeUnderflow(left, right, parent);
+
+				if (indexUnderFlow == -1) {
+					int locationIndex = parent.children.indexOf(right) - 1;
+					parent.keys.remove(locationIndex);
+					parent.keys.add(locationIndex, right.keys.get(0));
+				} else {
+					parent.keys.remove(indexUnderFlow);
+					
+					if (parent.isUnderflowed()) {
+
+						underFlowBubbleUp(parent);
+
+					}
+
 				}
 			}
 		}
@@ -389,13 +405,14 @@ public class BPlusTree<K extends Comparable<K>, T> {
 				right.insertSorted(left.keys.get(i), left.values.get(i));
 			}
 			right.previousLeaf = left.previousLeaf;
-			if (left.previousLeaf != null) { // changes previousLeaf of merged										// node if left has one
-				left.previousLeaf.nextLeaf = right;		
+			if (left.previousLeaf != null) { // changes previousLeaf of merged
+												// // node if left has one
+				left.previousLeaf.nextLeaf = right;
 			}
-			
+
 			int leftPosition = parent.children.indexOf(left);
 			parent.children.remove(leftPosition);
-			
+
 			int key = parent.children.indexOf(right);
 
 			return key;
@@ -457,6 +474,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 			for (int i = leftIndex.keys.size() - 1; i >= 0; i--) {
 				rightIndex.keys.add(0, leftIndex.keys.get(i));
 			}
+			parent.children.remove(parent.children.indexOf(leftIndex));
 			return key;
 
 		} else {
